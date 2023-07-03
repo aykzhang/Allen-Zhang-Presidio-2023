@@ -55,7 +55,7 @@ def googleSearch(topic):
         print("URL: " + search.url)
         print("Description: \n" + search.description)
         print("")
-    prev.append(search.url)
+        prev.append(search.url)
 
 #Function to start the search process
 def startSearch():
