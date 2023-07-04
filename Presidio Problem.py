@@ -17,45 +17,89 @@ Problem statement: Develop a program that accepts a topic as a string input from
 '''
 import wikipedia
 import googlesearch
+import multiprocessing
+import time
 
 #Function used to search Wikipedia for a given topic
 def wikipediaSearch(topic):
     print("==========================")
-    print("Here are some related Wikipedia articles for " + topic)
+    print("Wikipedia search loading...")
     #Uses wikipedia Library to search for the top 5 results of the topic
     searchList = wikipedia.search(topic, results = 5, suggestion = False)
-    for search in searchList:
-        try:
-            #Get searched term WikipediaPage object
-            page = wikipedia.page(search, auto_suggest=False)
-            #Print all related info
-            print("==========================")
-            print("Title: " + page.title)
-            print("URL: " + page.url)
-            print("Summary: \n" + page.summary)
-            print("")
-        except wikipedia.DisambiguationError as e:
-            #Searched page was a Disambiguation Page, continue
-            pass
+
+    if(searchList):
+        print("==========================")
+        print("Here are some related Wikipedia articles for " + topic)
+        for search in searchList:
+            try:
+                #Get searched term WikipediaPage object
+                page = wikipedia.page(search, auto_suggest=False)
+                #Print all related info
+                print("==========================")
+                print("Title: " + page.title)
+                print("URL: " + page.url)
+                print("Summary: \n" + page.summary)
+                print("")
+            except wikipedia.DisambiguationError as e:
+                #Searched page was a Disambiguation Page, continue
+                pass
+    else:
+        print("==========================")
+        print("There does not seem to be many Wikipedia pages results for " + topic)
+
+'''
+Uses googlesearch Library to get the top Google searches regarding the user input
+Googlesearch.search will hang if there are not enough results to satisfy num_results
+Need to time googlesearch.search and kill if it takes too much time
+'''
+def googleTimer(topic, q):
+    q.put(list(googlesearch.search(topic, num_results= 10, advanced=True)))
+
 
 #Function used to search Google for a given topic
 def googleSearch(topic):
-    print("==========================")
-    print("Here are some links according to a Google search regarding " + topic)
     prev = []
-    #Uses googlesearch Library to get the top Google searches regarding the user input
-    googleSearches = googlesearch.search(topic, advanced=True)
-    for search in googleSearches:
-        #Check to see if there is a duplicate search
-        if search.url in prev:
-            continue
-        #Print all related info
+    googleSearches = []
+
+    #Create queue to store googlesearch return value
+    queue = multiprocessing.Queue()
+
+    #Create multiprocess for googlesearch
+    p = multiprocessing.Process(target=googleTimer, args=(topic, queue))
+
+    #Start googlesearch
+    p.start()
+    print("==========================")
+    print("Google search loading...")
+
+    #Give googlesearch a maximum of 5 seconds to respond
+    p.join(5)
+
+    #If googlesearch is till going, terminate
+    if p.is_alive():
+        p.terminate()
+        p.join()
+    #Else, get the return value of the googlesearch stored in the queue
+    else:
+        googleSearches = queue.get()
+
+    if(googleSearches):
         print("==========================")
-        print("Title: " + search.title)
-        print("URL: " + search.url)
-        print("Description: \n" + search.description)
-        print("")
-        prev.append(search.url)
+        print("Here are some links according to a Google search regarding " + topic)
+        for search in googleSearches:
+            #Check to see if there is a duplicate search
+            if search.url in prev:
+                continue
+            #Print all related info
+            print("==========================")
+            print("Title: " + search.title)
+            print("URL: " + search.url)
+            print("Description: \n" + search.description)
+            print("")
+            prev.append(search.url)
+    else:
+        print("==========================")
+        print("There does not seem to be many Google search results for " + topic)
 
 #Function to start the search process
 def startSearch():
@@ -80,6 +124,7 @@ def startSearch():
         googleSearch(topic)
         wikipediaSearch(topic)
 
+    print("==========================")
     #Determine if user still wants to search
     again = input("Would you like to search again? (y/n): ")
 
