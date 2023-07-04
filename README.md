@@ -11,4 +11,6 @@ wikipedia 1.4.0
 Clone this repository and install dependencies: `pip install -r requirements.txt`
 
 ## Use
-Once all dependencies are installed, run "Presidio Problem.py": `python3 "Presidio Problem.py"` or `python "Presidio Problem.py"`
+Once all dependencies are installed, run "Presidio Problem.py": 
+
+`python3 "Presidio Problem.py"` or `python "Presidio Problem.py"`
