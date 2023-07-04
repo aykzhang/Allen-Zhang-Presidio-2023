@@ -18,7 +18,6 @@ Problem statement: Develop a program that accepts a topic as a string input from
 import wikipedia
 import googlesearch
 import multiprocessing
-import time
 
 #Function used to search Wikipedia for a given topic
 def wikipediaSearch(topic):
@@ -53,8 +52,7 @@ Googlesearch.search will hang if there are not enough results to satisfy num_res
 Need to time googlesearch.search and kill if it takes too much time
 '''
 def googleTimer(topic, q):
-    q.put(list(googlesearch.search(topic, num_results= 10, advanced=True)))
-
+    q.put(list(googlesearch.search(topic, num_results = 5, advanced=True)))
 
 #Function used to search Google for a given topic
 def googleSearch(topic):
